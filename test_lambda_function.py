@@ -4,7 +4,6 @@ from lambda_function import lambda_handler
 
 class TestLambdaFunction(unittest.TestCase):
     def test_lambda_handler_returns_hello_world(self):
-        # Simulando evento vazio (sem dados de entrada)
         event = {}
         context = None
 
