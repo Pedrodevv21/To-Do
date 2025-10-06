@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-      - 'feature/**'
+      - 'feature/'
   pull_request:
     branches:
       - develop
@@ -29,5 +29,7 @@ jobs:
           pip install pytest boto3
 
       - name: Rodar testes
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pytest -v
