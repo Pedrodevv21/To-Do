@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "sa-east-1" # ajuste para sua região
+  region = "sa-east-1"
 }
 
 # DynamoDB Table
