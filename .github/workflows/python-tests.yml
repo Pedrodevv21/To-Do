@@ -1,24 +1,23 @@
-name: Run Python Unit Tests
+name: Test and Deploy to DEV
 
 on:
   push:
     branches:
-      - develop
-      - 'feature/'
+      - dev
   pull_request:
     branches:
-      - develop
+      - dev
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -35,3 +34,20 @@ jobs:
       - name: Rodar testes
         run: |
           pytest -v
+
+      - name: Configurar credenciais AWS
+        if: success()  # só roda se os testes passarem
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: sa-east-1
+
+      - name: Deploy com Terraform
+        if: success()  # só roda se os testes passarem
+        run: |
+          cd terraform
+          terraform init -input=false
+          terraform validate
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan

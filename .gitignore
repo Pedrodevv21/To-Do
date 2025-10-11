@@ -4,3 +4,4 @@
 crash.log
 *.zip
 *.exe
+*._pycache__*
