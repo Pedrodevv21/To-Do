@@ -8,3 +8,12 @@ variable "update_list_lambda_name" { type = string }
 
 variable "stage_name" { type = string }
 variable "region"     { type = string }
+
+variable "redeployment_trigger" {
+  type        = string
+  default     = ""
+}
+variable "cognito_user_pool_arn" {
+  description = "O ARN do Cognito User Pool para usar no autorizador"
+  type = string
+}

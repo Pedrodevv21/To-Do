@@ -30,18 +30,18 @@ def lambda_handler(event, context):
             "body": json.dumps({"error": "Campo 'name' é obrigatório para atualização"})
         }
 
+    # Corrige prefixo duplicado
+    if list_id.startswith("LIST#"):
+        list_id = list_id.replace("LIST#", "", 1)
+
     response = table.update_item(
         Key={
             "PK": f"USER#{user_id}",
             "SK": f"LIST#{list_id}"
         },
         UpdateExpression="SET #n = :name",
-        ExpressionAttributeNames={
-            "#n": "name"
-        },
-        ExpressionAttributeValues={
-            ":name": body["name"]
-        },
+        ExpressionAttributeNames={"#n": "name"},
+        ExpressionAttributeValues={":name": body["name"]},
         ReturnValues="ALL_NEW"
     )
 

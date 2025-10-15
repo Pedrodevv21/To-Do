@@ -5,7 +5,7 @@ resource "aws_api_gateway_rest_api" "todo_api" {
   description = "API Gateway para o projeto ToDo List"
 }
 
-### /create
+### Resources
 resource "aws_api_gateway_resource" "create" {
   rest_api_id = aws_api_gateway_rest_api.todo_api.id
   parent_id   = aws_api_gateway_rest_api.todo_api.root_resource_id
@@ -30,38 +30,51 @@ resource "aws_api_gateway_resource" "list_sk" {
   path_part   = "{sk}"
 }
 
+### Cognito Authorizer
+resource "aws_api_gateway_authorizer" "cognito_authorizer" {
+  name          = "CognitoUserPoolAuthorizer"
+  type          = "COGNITO_USER_POOLS"
+  rest_api_id   = aws_api_gateway_rest_api.todo_api.id
+  provider_arns = [var.cognito_user_pool_arn]
+}
+
+### Métodos
 resource "aws_api_gateway_method" "post_create" {
   rest_api_id   = aws_api_gateway_rest_api.todo_api.id
   resource_id   = aws_api_gateway_resource.create.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
 resource "aws_api_gateway_method" "get_lists" {
   rest_api_id   = aws_api_gateway_rest_api.todo_api.id
   resource_id   = aws_api_gateway_resource.lists.id
   http_method   = "GET"
-  authorization = "NONE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
 resource "aws_api_gateway_method" "put_list" {
   rest_api_id   = aws_api_gateway_rest_api.todo_api.id
   resource_id   = aws_api_gateway_resource.list_sk.id
   http_method   = "PUT"
-  authorization = "NONE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 
   request_parameters = {
     "method.request.path.sk" = true
   }
 }
 
+### Integrações
 resource "aws_api_gateway_integration" "post_create" {
   rest_api_id             = aws_api_gateway_rest_api.todo_api.id
   resource_id             = aws_api_gateway_resource.create.id
   http_method             = aws_api_gateway_method.post_create.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/${var.uri_create_task}/invocations"
+  uri                     = "arn:aws:apigateway:${data.aws_region.current.id}:lambda:path/2015-03-31/functions/${var.uri_create_task}/invocations"
 }
 
 resource "aws_api_gateway_integration" "get_lists" {
@@ -70,7 +83,7 @@ resource "aws_api_gateway_integration" "get_lists" {
   http_method             = aws_api_gateway_method.get_lists.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/${var.uri_list_tasks}/invocations"
+  uri                     = "arn:aws:apigateway:${data.aws_region.current.id}:lambda:path/2015-03-31/functions/${var.uri_list_tasks}/invocations"
 }
 
 resource "aws_api_gateway_integration" "put_list" {
@@ -79,9 +92,10 @@ resource "aws_api_gateway_integration" "put_list" {
   http_method             = aws_api_gateway_method.put_list.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/${var.uri_update_task}/invocations"
+  uri                     = "arn:aws:apigateway:${data.aws_region.current.id}:lambda:path/2015-03-31/functions/${var.uri_update_task}/invocations"
 }
 
+### Permissões Lambda
 resource "aws_lambda_permission" "post_create" {
   statement_id  = "AllowPostCreate"
   action        = "lambda:InvokeFunction"
@@ -106,8 +120,10 @@ resource "aws_lambda_permission" "put_list" {
   source_arn    = "${aws_api_gateway_rest_api.todo_api.execution_arn}/*/*"
 }
 
-# Deployment + Stage
+### Deployment e Stage
 resource "aws_api_gateway_deployment" "deployment" {
+  rest_api_id = aws_api_gateway_rest_api.todo_api.id
+
   depends_on = [
     aws_api_gateway_integration.post_create,
     aws_api_gateway_integration.get_lists,
@@ -117,16 +133,22 @@ resource "aws_api_gateway_deployment" "deployment" {
     var.uri_update_task
   ]
 
-  rest_api_id = aws_api_gateway_rest_api.todo_api.id
-
   triggers = {
-    redeploy = sha1(jsonencode([
-      aws_api_gateway_integration.post_create,
-      aws_api_gateway_integration.get_lists,
-      aws_api_gateway_integration.put_list
+    redeployment = sha1(join("", [
+      aws_api_gateway_integration.post_create.id,
+      aws_api_gateway_integration.get_lists.id,
+      aws_api_gateway_integration.put_list.id,
+      var.redeployment_trigger
     ]))
   }
+
+  lifecycle {
+    ignore_changes = [
+      triggers
+    ]
+  }
 }
+
 
 resource "aws_api_gateway_stage" "stage" {
   stage_name    = var.stage_name

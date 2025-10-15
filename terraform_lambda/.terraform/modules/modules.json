@@ -1,1 +1,1 @@
-{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"api_gateway","Source":"./modules/api_gateway","Dir":"modules/api_gateway"}]}
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"Cognito","Source":"./modules/cognito","Dir":"modules/cognito"},{"Key":"Cognito.cognito","Source":"./modules/cognito","Dir":""},{"Key":"api_gateway","Source":"./modules/api_gateway","Dir":"modules/api_gateway"},{"Key":"cognito","Source":"./modules/cognito","Dir":"modules/cognito"}]}
