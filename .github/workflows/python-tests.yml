@@ -44,7 +44,7 @@ jobs:
           aws-region: sa-east-1
 
       - name: Deploy com Terraform
-        if: success()  # só roda se os testes passarem
+        if: success() 
         run: |
           cd terraform
           terraform init -input=false
