@@ -48,7 +48,7 @@ jobs:
       - name: Deploy com Terraform
         if: success() 
         run: |
-          cd terraform
+          cd terraform_lambda
           terraform init -input=false
           terraform validate
           terraform plan -out=tfplan
