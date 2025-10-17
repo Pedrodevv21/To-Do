@@ -3,10 +3,11 @@ name: Test and Deploy to DEV
 on:
   push:
     branches:
-      - dev
+      - develop
+      - 'feature/**'
   pull_request:
     branches:
-      - dev
+      - develop
 
 jobs:
   test-and-deploy:
@@ -21,7 +22,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Instalar dependências
+      - name: Instalar dependências Python
         run: |
           python -m pip install --upgrade pip
           pip install pytest boto3
@@ -32,8 +33,12 @@ jobs:
           echo "AWS_DEFAULT_REGION=sa-east-1" >> $GITHUB_ENV
 
       - name: Rodar testes
-        run: |
-          pytest -v
+        run: pytest -v
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7 # Altere para a versão que você está usando
 
       - name: Configurar credenciais AWS
         if: success()  # só roda se os testes passarem
@@ -44,9 +49,9 @@ jobs:
           aws-region: sa-east-1
 
       - name: Deploy com Terraform
-        if: success() 
+        if: success()
         run: |
-          cd terraform
+          cd terraform_lambda
           terraform init -input=false
           terraform validate
           terraform plan -out=tfplan
