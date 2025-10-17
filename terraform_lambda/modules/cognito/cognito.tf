@@ -1,4 +1,4 @@
-# ---------- Cognito User Pool ----------
+# Cognito User Pool 
 resource "aws_cognito_user_pool" "user_pool" {
   name = "todo-user-pool"
 
@@ -13,7 +13,7 @@ resource "aws_cognito_user_pool" "user_pool" {
   }
 }
 
-# ---------- Cognito User Pool Client ----------
+#  Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "user_pool_client" {
   name         = "todo-client"
   user_pool_id = aws_cognito_user_pool.user_pool.id
