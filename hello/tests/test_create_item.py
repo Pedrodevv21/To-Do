@@ -6,7 +6,7 @@ from hello.hello_lambda.create_item import lambda_handler  # ajuste o import par
 def test_create_item_success(mock_put_item):
     mock_put_item.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
 
-    # Testando com list_id sem prefixo 'LIST#' para garantir que ele será adicionado
+
     event = {
         "body": json.dumps({
             "list_id": "9f7d558c-c59e-4560-b5fa-baec9d4ed343",
@@ -27,7 +27,7 @@ def test_create_item_success(mock_put_item):
 def test_create_item_success_with_prefixed_list_id(mock_put_item):
     mock_put_item.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
 
-    # Testando com list_id já com prefixo 'LIST#' para garantir que não duplica
+    
     event = {
         "body": json.dumps({
             "list_id": "LIST#9f7d558c-c59e-4560-b5fa-baec9d4ed343",
