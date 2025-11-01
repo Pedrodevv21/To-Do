@@ -8,8 +8,8 @@ TABLE_NAME = os.environ['DYNAMODB_TABLE']
 def lambda_handler(event, context):
     try:
     
-        pk_raw = event["pathParameters"]["pk"]   # ex: "9f7d558c-c59e-4560-b5fa-baec9d4ed343"
-        sk_raw = event["pathParameters"]["sk"]   # ex: "49cba0b9-8840-4f9d-a7a4-7908d5e26238"
+        pk_raw = event["pathParameters"]["pk"]
+        sk_raw = event["pathParameters"]["sk"]   
 
        
         pk = f"LIST#{pk_raw}"
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
             ":status": {"S": status}
         }
 
-        # Faz o update no DynamoDB
+       
         response = dynamodb.update_item(
             TableName=TABLE_NAME,
             Key={
