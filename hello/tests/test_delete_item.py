@@ -36,7 +36,6 @@ def test_delete_item_success():
 
     response = lambda_handler(event, None)
 
-    # 👉 comportamento REAL da lambda
     assert response["statusCode"] == 404
     mock_client.delete_item.assert_called_once()
 
@@ -69,7 +68,6 @@ def test_delete_item_missing_params():
 
     response = lambda_handler(event, None)
 
-    # 👉 lambda não valida params → explode → 500
     assert response["statusCode"] == 500
 
 

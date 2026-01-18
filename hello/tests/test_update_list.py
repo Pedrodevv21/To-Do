@@ -88,11 +88,11 @@ def test_dynamodb_failure():
         })
     }
 
-    # Só garantimos que a lambda não quebre com a exceção
+    
     response = update_list_mod.lambda_handler(event, None)
     body = json.loads(response["body"])
 
-    # Se a lambda não chama update_item por algum motivo, não quebramos o teste
+    
     assert "statusCode" in response
 
 

@@ -4,9 +4,6 @@ from unittest.mock import MagicMock, patch
 
 
 def _import_lambda_with_mocked_dynamodb(query_return=None, side_effect=None):
-    """
-    Importa a lambda com boto3.resource mockado ANTES do import
-    """
 
     mock_table = MagicMock()
 
@@ -18,7 +15,6 @@ def _import_lambda_with_mocked_dynamodb(query_return=None, side_effect=None):
     mock_dynamodb = MagicMock()
     mock_dynamodb.Table.return_value = mock_table
 
-    # Garante import limpo
     sys.modules.pop("hello.lambdas.get_item", None)
 
     with patch("boto3.resource", return_value=mock_dynamodb):

@@ -4,17 +4,14 @@ from unittest.mock import MagicMock, patch
 
 
 def test_create_item_success():
-    # mock do table
     mock_table = MagicMock()
     mock_table.put_item.return_value = {
         "ResponseMetadata": {"HTTPStatusCode": 200}
     }
 
-    # mock do dynamodb.resource().Table()
+    
     mock_dynamodb = MagicMock()
     mock_dynamodb.Table.return_value = mock_table
-
-    # patch ANTES do import
     with patch("boto3.resource", return_value=mock_dynamodb):
         from hello.lambdas.create_item import lambda_handler
 
