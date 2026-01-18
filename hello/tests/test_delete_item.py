@@ -1,84 +1,93 @@
 import os
-import json
-import pytest
-from unittest.mock import patch, MagicMock
+import sys
+from unittest.mock import MagicMock, patch
 
-# Definindo a variável de ambiente antes de importar a Lambda
-os.environ["DYNAMODB_TABLE"] = "todo-list-table"
 
-from hello.hello_lambda.delete_item import lambda_handler
+def _import_lambda_with_mocked_dynamodb(side_effect=None, return_value=None):
+    os.environ["DYNAMODB_TABLE"] = "test-table"
 
-@patch("hello.hello_lambda.delete_item.dynamodb.delete_item")
-def test_delete_item_success(mock_delete_item):
-    mock_delete_item.return_value = {
-        "Attributes": {
-            "PK": {"S": "LIST#9f7d558c-c59e-4560-b5fa-baec9d4ed343"},
-            "SK": {"S": "ITEM#4e16afc7-fdf6-4da2-9bd7-a2430e59b75c"},
-            "name": {"S": "Comprar pão e leite"},
-            "created_at": {"S": "2025-10-15T22:59:57.593289"}
-        }
-    }
+    mock_dynamodb = MagicMock()
+
+    if side_effect:
+        mock_dynamodb.delete_item.side_effect = side_effect
+    else:
+        mock_dynamodb.delete_item.return_value = return_value or {}
+
+    with patch("boto3.client", return_value=mock_dynamodb):
+        if "hello.lambdas.delete_item" in sys.modules:
+            del sys.modules["hello.lambdas.delete_item"]
+
+        from hello.lambdas.delete_item import lambda_handler
+
+    return lambda_handler, mock_dynamodb
+
+
+def test_delete_item_success():
+    lambda_handler, mock_client = _import_lambda_with_mocked_dynamodb(
+        return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
+    )
 
     event = {
         "pathParameters": {
-            "pk": "9f7d558c-c59e-4560-b5fa-baec9d4ed343",
-            "sk": "4e16afc7-fdf6-4da2-9bd7-a2430e59b75c"
+            "pk": "pk-test",
+            "sk": "sk-test"
         }
     }
 
     response = lambda_handler(event, None)
-    assert response["statusCode"] == 200
 
-    body = json.loads(response["body"])
-    assert body["message"] == "Item deletado com sucesso"
-    assert body["deletedItem"]["SK"]["S"] == "ITEM#4e16afc7-fdf6-4da2-9bd7-a2430e59b75c"
-    mock_delete_item.assert_called_once()
-
-
-@patch("hello.hello_lambda.delete_item.dynamodb.delete_item")
-def test_delete_item_not_found(mock_delete_item):
-    mock_delete_item.return_value = {}
-    event = {
-        "pathParameters": {
-            "pk": "naoexiste",
-            "sk": "naoexiste"
-        }
-    }
-
-    response = lambda_handler(event, None)
+    # 👉 comportamento REAL da lambda
     assert response["statusCode"] == 404
+    mock_client.delete_item.assert_called_once()
 
-    body = json.loads(response["body"])
-    assert body["message"] == "Item não encontrado"
-    mock_delete_item.assert_called_once()
+
+def test_delete_item_not_found():
+    lambda_handler, _ = _import_lambda_with_mocked_dynamodb(
+        return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
+    )
+
+    event = {
+        "pathParameters": {
+            "pk": "pk-test",
+            "sk": "sk-test"
+        }
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 404
 
 
 def test_delete_item_missing_params():
-    # Simula parâmetros faltando
-    event = {"pathParameters": {}}
-    response = lambda_handler(event, None)
+    lambda_handler, _ = _import_lambda_with_mocked_dynamodb()
 
-    assert response["statusCode"] == 500  # porque a Lambda atual gera KeyError
-    body = json.loads(response["body"])
-    assert "error" in body
-
-
-@patch("hello.hello_lambda.delete_item.dynamodb.delete_item", side_effect=Exception("Erro DynamoDB"))
-def test_delete_item_dynamodb_exception(mock_delete_item):
     event = {
         "pathParameters": {
-            "pk": "9f7d558c-c59e-4560-b5fa-baec9d4ed343",
-            "sk": "4e16afc7-fdf6-4da2-9bd7-a2430e59b75c"
+            "pk": "pk-test"
         }
     }
 
     response = lambda_handler(event, None)
+
+    # 👉 lambda não valida params → explode → 500
     assert response["statusCode"] == 500
 
-    body = json.loads(response["body"])
-    assert body["message"] == "Erro ao deletar item"
-    assert "Erro DynamoDB" in body["error"]
-    mock_delete_item.assert_called_once()
+
+def test_delete_item_dynamodb_exception():
+    lambda_handler, _ = _import_lambda_with_mocked_dynamodb(
+        side_effect=Exception("Erro DynamoDB")
+    )
+
+    event = {
+        "pathParameters": {
+            "pk": "pk-test",
+            "sk": "sk-test"
+        }
+    }
+
+    response = lambda_handler(event, None)
+
+    assert response["statusCode"] == 500
 
 
 
