@@ -50,16 +50,14 @@ resource "aws_iam_role_policy_attachment" "lambda_sqs_access" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
 }
 
-# =====================================
-# 🔹 Fila SQS
-# =====================================
+
+#  Fila SQS
 resource "aws_sqs_queue" "request_queue" {
   name = "user-request-queue"
 }
 
-# =====================================
+
 # 🔹 Lambda post_request (SQS)
-# =====================================
 resource "aws_lambda_function" "post_request_lambda" {
   function_name    = "post_request_lambda"
   role             = aws_iam_role.lambda_api_role.arn
@@ -75,9 +73,9 @@ resource "aws_lambda_function" "post_request_lambda" {
   }
 }
 
-# =====================================
-# 🔹 Lambda get_request (SQS)
-# =====================================
+
+#  Lambda get_request (SQS)
+
 resource "aws_lambda_function" "get_request_lambda" {
   function_name    = "get_request_lambda"
   role             = aws_iam_role.lambda_api_role.arn
@@ -93,9 +91,8 @@ resource "aws_lambda_function" "get_request_lambda" {
   }
 }
 
-# =====================================
+
 # Outras Lambdas existentes
-# =====================================
 resource "aws_lambda_function" "create_list_lambda" {
   function_name    = "create_list_lambda"
   role             = aws_iam_role.lambda_api_role.arn
@@ -216,9 +213,8 @@ resource "aws_lambda_function" "get_list_by_id_lambda" {
   }
 }
 
-# =====================================
+
 # Cognito Module
-# =====================================
 module "cognito" {
   source = "./modules/cognito"
 }
@@ -257,9 +253,8 @@ module "api_gateway" {
   region                = "sa-east-1"
 }
 
-# =====================================
+
 # Bucket S3 para CSVs
-# =====================================
 resource "aws_s3_bucket" "csv_bucket" {
   bucket        = "todo-csv-bucket"
   force_destroy = true
