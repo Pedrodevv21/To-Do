@@ -1,8 +1,7 @@
 data "aws_region" "current" {}
 
-# =====================================
+
 # API Gateway principal
-# =====================================
 resource "aws_api_gateway_rest_api" "todo_api" {
   name        = "todo-api"
   description = "API Gateway para o projeto ToDo List"
@@ -61,9 +60,8 @@ resource "aws_api_gateway_resource" "requests" {
 }
 
 
-# =====================================
+
 # Cognito Authorizer
-# =====================================
 resource "aws_api_gateway_authorizer" "cognito_authorizer" {
   name          = "CognitoUserPoolAuthorizer"
   type          = "COGNITO_USER_POOLS"
@@ -174,9 +172,8 @@ resource "aws_api_gateway_method" "get_requests" {
   authorizer_id = aws_api_gateway_authorizer.cognito_authorizer.id
 }
 
-# =====================================
+
 # Integrações com Lambdas
-# =====================================
 resource "aws_api_gateway_integration" "post_create" {
   rest_api_id             = aws_api_gateway_rest_api.todo_api.id
   resource_id             = aws_api_gateway_resource.create.id
@@ -269,9 +266,9 @@ resource "aws_api_gateway_integration" "get_requests" {
   uri                     = "arn:aws:apigateway:${data.aws_region.current.id}:lambda:path/2015-03-31/functions/${var.uri_get_request}/invocations"
 }
 
-# =====================================
+
 # Permissões para Lambda
-# =====================================
+
 resource "aws_lambda_permission" "post_create" {
   statement_id  = "AllowPostCreate"
   action        = "lambda:InvokeFunction"
@@ -355,9 +352,8 @@ resource "aws_lambda_permission" "get_requests" {
 }
 
 
-# =====================================
+
 # Deployment e Stage
-# =====================================
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.todo_api.id
 
