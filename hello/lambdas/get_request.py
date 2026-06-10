@@ -6,7 +6,7 @@ import tempfile
 from datetime import datetime
 from boto3.dynamodb.conditions import Key
 
-# === Configurações fixas ===
+
 DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "todo-list-table")
 S3_BUCKET = os.environ.get("S3_BUCKET", "todo-csv-bucket")
 REGION = os.environ.get("AWS_REGION", "sa-east-1")
@@ -15,7 +15,7 @@ REGION = os.environ.get("AWS_REGION", "sa-east-1")
 FROM_EMAIL = "pedroxxdroxx@gmail.com"
 TO_EMAIL = "pedroalves.devv@gmail.com"
 
-# === Clientes AWS ===
+
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
 table = dynamodb.Table(DYNAMODB_TABLE)
 s3 = boto3.client("s3", region_name=REGION)
@@ -39,7 +39,7 @@ def lambda_handler(event, context):
                 print("Mensagem inválida recebida:", message)
                 continue
 
-            # === 1️⃣ Consulta DynamoDB (sem scan, usando PK = USER#123) ===
+           
             response = table.query(
                 KeyConditionExpression=Key("PK").eq(f"USER#{user_id}")
             )
@@ -68,7 +68,7 @@ def lambda_handler(event, context):
                 ExpiresIn=3600  # 1 hora
             )
 
-            # === 5️⃣ Envia e-mail fixo via SES ===
+           
             ses.send_email(
                 Source=FROM_EMAIL,
                 Destination={"ToAddresses": [TO_EMAIL]},
