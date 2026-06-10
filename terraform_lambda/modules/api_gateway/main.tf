@@ -7,9 +7,8 @@ resource "aws_api_gateway_rest_api" "todo_api" {
   description = "API Gateway para o projeto ToDo List"
 }
 
-# =====================================
+
 # Recursos (paths)
-# =====================================
 resource "aws_api_gateway_resource" "create" {
   rest_api_id = aws_api_gateway_rest_api.todo_api.id
   parent_id   = aws_api_gateway_rest_api.todo_api.root_resource_id
@@ -69,9 +68,8 @@ resource "aws_api_gateway_authorizer" "cognito_authorizer" {
   provider_arns = [var.cognito_user_pool_arn]
 }
 
-# =====================================
+
 # Métodos existentes
-# =====================================
 resource "aws_api_gateway_method" "post_create" {
   rest_api_id   = aws_api_gateway_rest_api.todo_api.id
   resource_id   = aws_api_gateway_resource.create.id
